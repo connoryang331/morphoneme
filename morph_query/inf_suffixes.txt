@@ -1,0 +1,8 @@
+# Inflectional suffixes — one per line, optional leading -
+# Remove or comment out unwanted entries, add new ones below
+-s
+-ed
+-ing
+-en
+-est
+-es

@@ -1,0 +1,22 @@
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Database
+morph_query/morph_query.db
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Local configuration
+.env
+*.db.zip

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "morph-query"
+version = "0.1.0"
+description = "Search English words by morphological annotation columns"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+keywords = ["morphology", "morpheme", "linguistics", "english", "word-analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+[project.urls]
+Homepage = "https://github.com/nlwl/morph-query"
+Source = "https://github.com/nlwl/morph-query"
+BugTracker = "https://github.com/nlwl/morph-query/issues"
+
+[tool.setuptools.packages.find]
+include = ["morph_query*"]
+
+[tool.setuptools.package-data]
+morph_query = ["*.txt"]
+
+[project.scripts]
+mq = "morph_query.__main__:main"

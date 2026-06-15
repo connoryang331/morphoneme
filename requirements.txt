@@ -1,0 +1,3 @@
+# Core library — zero external dependencies (Python stdlib only)
+# To add a dependency, use the format:
+# requests>=2.31.0
