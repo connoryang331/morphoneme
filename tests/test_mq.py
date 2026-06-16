@@ -45,6 +45,15 @@ class TestMQ(unittest.TestCase):
         results = self.mq.search("ion", limit=5)
         self.assertLessEqual(len(results), 5)
 
+    def test_search_exact(self):
+        results = self.mq.search("ch", exact=True)
+        self.assertIsInstance(results, list)
+        words = [r["word"] for r in results]
+        self.assertIn("chad", words)
+        self.assertIn("cham", words)
+        # Should NOT match words that contain 'ch' as a substring of a larger morpheme (like character)
+        self.assertNotIn("characteristic", words)
+
     # ── semantic aliases ──────────────────────────────────────
 
     def test_words_with_prefix(self):

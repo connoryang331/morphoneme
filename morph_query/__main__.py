@@ -9,6 +9,7 @@ from .mq import MQ
 def main():
     json_output = "--json" in sys.argv
     exclude_inf = "--exclude-inf" in sys.argv
+    exact = "--exact" in sys.argv
     limit = None
     exclude_str = None
     for a in list(sys.argv):
@@ -18,7 +19,7 @@ def main():
         elif a.startswith("--exclude="):
             exclude_str = a.split("=", 1)[1]
             sys.argv.remove(a)
-    sys.argv = [a for a in sys.argv if a not in ("--json", "--exclude-inf")]
+    sys.argv = [a for a in sys.argv if a not in ("--json", "--exclude-inf", "--exact")]
 
     mq = MQ()
 
@@ -33,7 +34,7 @@ def main():
             sys.exit(1)
 
     if len(sys.argv) < 3:
-        print("Usage: python -m morph_query <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exclude=STR] [--limit=N]")
+        print("Usage: python -m morph_query <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exclude=STR] [--exact] [--limit=N]")
         print()
         print("  Commands:")
         print("    search, prefix, suffix, root, deri_suffix, inf_suffix - search words")
@@ -49,6 +50,7 @@ def main():
         print("  --json        JSON output")
         print("  --exclude-inf exclude results with inflectional suffixes")
         print("  --exclude=STR exclude results containing STR (case-insensitive)")
+        print("  --exact       exact morpheme match instead of substring (for search cmd)")
         print("  --limit=N     limit number of results")
         sys.exit(1)
 
@@ -67,7 +69,10 @@ def main():
 
     match cmd:
         # ── search / count ──
-        case "search" | "prefix" | "suffix" | "root" | "deri_suffix" | "inf_suffix":
+        case "search":
+            results = mq.search(arg, source=source, seg=seg,
+                                exclude_inf=exclude_inf, limit=limit, exact=exact)
+        case "prefix" | "suffix" | "root" | "deri_suffix" | "inf_suffix":
             fn = CMD_MAP.get(cmd, cmd)
             results = getattr(mq, fn)(arg, source=source, seg=seg,
                                       exclude_inf=exclude_inf, limit=limit)
@@ -113,6 +118,8 @@ def main():
         print(_json.dumps(results, ensure_ascii=False))
     else:
         label = f"source={source}, seg={seg}"
+        if exact:
+            label += ", exact"
         if exclude_inf:
             label += ", exclude_inf"
         if exclude_str:

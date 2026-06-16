@@ -102,6 +102,7 @@ class MQ:
     def search(
         self, s: str, *, source: str = "both", seg: str = "both",
         exclude_inf: bool = False, limit: int | None = None,
+        exact: bool = False,
     ) -> list[dict]:
         """Generic search.
 
@@ -114,17 +115,41 @@ class MQ:
                         "citylex"        — word + citylex
           exclude_inf — whether to exclude results with inflectional suffixes
           limit       — max results to return (default: no limit)
+          exact       — match exact morpheme instead of substring (default: False)
         """
-        match seg:
-            case "umlabeller":
-                cols = "word, umlabeller"
-            case "citylex":
-                cols = "word, citylex"
-            case _:
-                cols = "word, umlabeller, citylex"
+        if exact:
+            match seg:
+                case "umlabeller":
+                    cols = "w.word, w.umlabeller"
+                case "citylex":
+                    cols = "w.word, w.citylex"
+                case _:
+                    cols = "w.word, w.umlabeller, w.citylex"
 
-        where, params = self._where_like(source, s)
-        sql = f"SELECT DISTINCT {cols} FROM words WHERE {where}"
+            where_clauses = ["m.morpheme = ?"]
+            params = [s]
+            if source == "umlabeller":
+                where_clauses.append("m.source = 'umlabeller'")
+            elif source == "citylex":
+                where_clauses.append("m.source = 'citylex'")
+            where_str = " AND ".join(where_clauses)
+            sql = f"""
+                SELECT DISTINCT {cols} 
+                FROM words w
+                JOIN word_morphemes m ON w.word = m.word
+                WHERE {where_str}
+            """
+        else:
+            match seg:
+                case "umlabeller":
+                    cols = "word, umlabeller"
+                case "citylex":
+                    cols = "word, citylex"
+                case _:
+                    cols = "word, umlabeller, citylex"
+            where, params = self._where_like(source, s)
+            sql = f"SELECT DISTINCT {cols} FROM words WHERE {where}"
+
         if limit and not exclude_inf:
             sql += f" LIMIT {limit}"
         cur = self.conn.execute(sql, params)
