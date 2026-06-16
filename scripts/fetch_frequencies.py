@@ -59,6 +59,30 @@ def save_cache(cache):
     except Exception as e:
         print(f"Error saving cache: {e}")
 
+def write_tsv(all_rows, cache):
+    temp_tsv = TSV_PATH.with_suffix(".tmp_tsv")
+    try:
+        with open(temp_tsv, "w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f, delimiter="\t")
+            writer.writerow(["Wordsss", "umLabeller_seg", "Citylex_seg", "Frequency"])
+            
+            for row in all_rows:
+                word, uml_seg, city_seg, _ = row
+                if city_seg.strip():
+                    freq = cache.get(word, "")
+                    if freq != "":
+                        freq = str(freq)
+                else:
+                    freq = ""
+                writer.writerow([word, uml_seg, city_seg, freq])
+
+        if temp_tsv.exists():
+            if TSV_PATH.exists():
+                os.remove(TSV_PATH)
+            os.rename(temp_tsv, TSV_PATH)
+    except Exception as e:
+        print(f"Error writing TSV: {e}")
+
 def main():
     if not TSV_PATH.exists():
         print(f"Source file not found: {TSV_PATH}")
@@ -89,6 +113,11 @@ def main():
 
     cache = load_cache()
     print(f"Loaded cache with {len(cache)} entries.")
+    
+    # Sync initial cache to TSV
+    if cache:
+        print("Syncing initial cache to morph_data.tsv...")
+        write_tsv(all_rows, cache)
     
     # Filter words that actually need to be fetched
     pending_words = [w for w in words_to_fetch if w not in cache]
@@ -124,35 +153,17 @@ def main():
                 if batch_unsaved >= BATCH_SAVE_SIZE:
                     save_cache(cache)
                     batch_unsaved = 0
+
+                # Periodically sync to TSV file every 1000 items
+                if completed % 1000 == 0 or completed == total_to_fetch:
+                    print(f"Syncing frequencies to morph_data.tsv (completed: {completed})...")
+                    write_tsv(all_rows, cache)
                     
         # Final save
         save_cache(cache)
         print("Fetch complete and cache saved.")
 
-    # Write the updated TSV file
-    print("Writing updated morph_data.tsv...")
-    temp_tsv = TSV_PATH.with_suffix(".tmp_tsv")
-    
-    with open(temp_tsv, "w", encoding="utf-8", newline="") as f:
-        writer = csv.writer(f, delimiter="\t")
-        writer.writerow(["Wordsss", "umLabeller_seg", "Citylex_seg", "Frequency"])
-        
-        for row in all_rows:
-            word, uml_seg, city_seg, _ = row
-            if city_seg.strip():
-                # Get frequency from cache, default to empty/0.0 if somehow missing
-                freq = cache.get(word, "")
-                if freq != "":
-                    freq = str(freq)
-            else:
-                freq = ""
-            writer.writerow([word, uml_seg, city_seg, freq])
-
-    # Safely swap the file
-    if TSV_PATH.exists():
-        os.remove(TSV_PATH)
-    os.rename(temp_tsv, TSV_PATH)
-    print("morph_data.tsv updated successfully!")
+    print("morph_data.tsv is fully up-to-date!")
 
 if __name__ == "__main__":
     main()
