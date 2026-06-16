@@ -79,7 +79,7 @@ python -m morph_query <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exc
 
 | 命令 | 描述 |
 | --------------- | ---------------------------------------------------------- |
-| `search` | 搜索所有列以获取包含给定字符串的单词 |
+| `search` | 搜索匹配给定模式的单词，支持通配符 `*`（如 `*ough`, `ough*`） |
 | `prefix` | 返回包含给定前缀的单词 |
 | `suffix` | 返回包含给定后缀的单词 |
 | `root` | 返回包含给定词根的单词 |
@@ -122,6 +122,13 @@ Found 29553 results (source=both, seg=both):
   abduction         umlabeller=abduce @@t @@ion     citylex={ab--duct}>ion>
   aberration        umlabeller=aberrate @@ion       citylex={aberr--ate}>ion>
   ... and 29549 more
+
+# 使用通配符搜索（例如查找以 "ough" 结尾的词）
+$ mq search *ough
+Found 107 results (source=both, seg=both):
+  rough             umlabeller=rough                citylex={rough}
+  cough             umlabeller=cough                citylex={cough}
+  ... and 105 more
 
 # 返回含有前缀 "un" 的词
 $ mq prefix un

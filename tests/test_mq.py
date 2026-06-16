@@ -54,6 +54,20 @@ class TestMQ(unittest.TestCase):
         # Should NOT match words that contain 'ch' as a substring of a larger morpheme (like character)
         self.assertNotIn("characteristic", words)
 
+    def test_search_wildcard(self):
+        results = self.mq.search("*ough")
+        self.assertIsInstance(results, list)
+        words = [r["word"] for r in results]
+        self.assertIn("rough", words)
+        self.assertIn("cough", words)
+        self.assertNotIn("ought", words)
+
+        results_start = self.mq.search("ough*")
+        self.assertIsInstance(results_start, list)
+        words_start = [r["word"] for r in results_start]
+        self.assertIn("ought", words_start)
+        self.assertNotIn("rough", words_start)
+
     # ── semantic aliases ──────────────────────────────────────
 
     def test_words_with_prefix(self):

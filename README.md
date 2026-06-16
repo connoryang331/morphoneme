@@ -80,7 +80,7 @@ python -m morph_query <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exc
 
 | Command         | Description                                                |
 | --------------- | ---------------------------------------------------------- |
-| `search`        | Search all columns for words containing the given string   |
+| `search`        | Search words matching a pattern. Supports wildcards `*` (e.g. `*ough`, `ough*`) |
 | `prefix`        | Return words that contain the given prefix                 |
 | `suffix`        | Return words that contain the given suffix                 |
 | `root`          | Return words that contain the given root                   |
@@ -125,6 +125,13 @@ Found 29553 results (source=both, seg=both):
   abduction         umlabeller=abduce @@t @@ion     citylex={ab--duct}>ion>
   aberration        umlabeller=aberrate @@ion       citylex={aberr--ate}>ion>
   ... and 29549 more
+
+# Search using wildcards (e.g. find words ending with "ough")
+$ mq search *ough
+Found 107 results (source=both, seg=both):
+  rough             umlabeller=rough                citylex={rough}
+  cough             umlabeller=cough                citylex={cough}
+  ... and 105 more
 
 # Return words that contain the given prefix
 $ mq prefix un

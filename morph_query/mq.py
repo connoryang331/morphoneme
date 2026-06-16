@@ -200,13 +200,18 @@ class MQ:
     @staticmethod
     def _where_like(source: str, s: str) -> tuple[str, tuple]:
         """Build LIKE condition. Returns (where_clause, params)."""
+        if "*" in s:
+            pattern = s.replace("*", "%")
+        else:
+            pattern = f"%{s}%"
+
         match source:
             case "umlabeller":
-                return "umlabeller LIKE ?", (f"%{s}%",)
+                return "(word LIKE ? OR umlabeller LIKE ?)", (pattern, pattern)
             case "citylex":
-                return "citylex LIKE ?", (f"%{s}%",)
+                return "(word LIKE ? OR citylex LIKE ?)", (pattern, pattern)
             case _:  # both
-                return "umlabeller LIKE ? OR citylex LIKE ?", (f"%{s}%", f"%{s}%")
+                return "(word LIKE ? OR umlabeller LIKE ? OR citylex LIKE ?)", (pattern, pattern, pattern)
 
     def _morpheme_type_search(
         self, morpheme: str, morph_type: str, *, source: str = "both", seg: str = "both",
