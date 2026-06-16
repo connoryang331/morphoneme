@@ -20,3 +20,4 @@ env/
 # Local configuration
 .env
 *.db.zip
+data/frequency_cache.json*
