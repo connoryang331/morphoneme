@@ -68,12 +68,9 @@ def write_tsv(all_rows, cache):
             
             for row in all_rows:
                 word, uml_seg, city_seg, _ = row
-                if city_seg.strip():
-                    freq = cache.get(word, "")
-                    if freq != "":
-                        freq = str(freq)
-                else:
-                    freq = ""
+                freq = cache.get(word, "")
+                if freq != "":
+                    freq = str(freq)
                 writer.writerow([word, uml_seg, city_seg, freq])
 
         if temp_tsv.exists():
@@ -107,9 +104,8 @@ def main():
             freq = row[3] if len(row) > 3 and has_freq_col else ""
             
             all_rows.append([word, uml_seg, city_seg, freq])
-            # Only fetch if citylex has a value
-            if city_seg.strip():
-                words_to_fetch.append(word)
+            # Fetch all words
+            words_to_fetch.append(word)
 
     cache = load_cache()
     print(f"Loaded cache with {len(cache)} entries.")
