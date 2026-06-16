@@ -10,9 +10,13 @@ def main():
     json_output = "--json" in sys.argv
     exclude_inf = "--exclude-inf" in sys.argv
     limit = None
+    exclude_str = None
     for a in list(sys.argv):
         if a.startswith("--limit="):
             limit = int(a.split("=", 1)[1])
+            sys.argv.remove(a)
+        elif a.startswith("--exclude="):
+            exclude_str = a.split("=", 1)[1]
             sys.argv.remove(a)
     sys.argv = [a for a in sys.argv if a not in ("--json", "--exclude-inf")]
 
@@ -29,10 +33,10 @@ def main():
             sys.exit(1)
 
     if len(sys.argv) < 3:
-        print("Usage: python -m morph_query <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--limit=N]")
+        print("Usage: python -m morph_query <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exclude=STR] [--limit=N]")
         print()
         print("  Commands:")
-        print("    search, prefix, suffix, root, deri_suffix, inf_suffix  - search words")
+        print("    search, prefix, suffix, root, deri_suffix, inf_suffix - search words")
         print("    count                                                    - count results")
         print("    sample                                                   - random sample")
         print("    morph_seg / word_seg / word                              - morpheme segmentation")
@@ -44,6 +48,7 @@ def main():
         print("  seg:    both (default), umlabeller, citylex")
         print("  --json        JSON output")
         print("  --exclude-inf exclude results with inflectional suffixes")
+        print("  --exclude=STR exclude results containing STR (case-insensitive)")
         print("  --limit=N     limit number of results")
         sys.exit(1)
 
@@ -95,12 +100,23 @@ def main():
             print(f"Unknown: {cmd}")
             sys.exit(1)
 
+    if exclude_str:
+        ex = exclude_str.lower()
+        results = [
+            r for r in results
+            if ex not in r["word"].lower()
+            and ex not in r.get("umlabeller", "").lower()
+            and ex not in r.get("citylex", "").lower()
+        ]
+
     if json_output:
         print(_json.dumps(results, ensure_ascii=False))
     else:
         label = f"source={source}, seg={seg}"
         if exclude_inf:
             label += ", exclude_inf"
+        if exclude_str:
+            label += f", exclude={exclude_str}"
         if limit:
             label += f", limit={limit}"
         print(f"Found {len(results)} results ({label}):")
