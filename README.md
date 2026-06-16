@@ -119,7 +119,7 @@ All search commands query **both umLabeller and CityLex datasets merged** by def
 | `--exclude=S1,S2`| Exclude results containing any of the comma-separated strings (case-insensitive) |
 | `--exact`        | Match exact morpheme instead of substring (for `search` cmd)  |
 | `--limit=N`      | Limit number of results returned                               |
-| `--fq=VAL`       | Filter results by frequency tier: `high` (>=5.0), `medium` (>=1.0 and <5.0), `low` (<1.0 or missing) |
+| `--fq=VAL`       | Filter results by frequency tier: `high` (>=5.0), `medium` (>=1.0 and <5.0), `low` (<1.0). **Note**: Words with missing frequency data (`NULL`) are **never** filtered out in any tier. |
 
 ### Examples
 

@@ -231,17 +231,17 @@ class TestMQ(unittest.TestCase):
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
-            self.assertIsNotNone(freq)
-            self.assertGreaterEqual(freq, 5.0)
+            if freq is not None:
+                self.assertGreaterEqual(freq, 5.0)
 
     def test_search_fq_medium(self):
         results = self.mq.search("ion", fq="medium")
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
-            self.assertIsNotNone(freq)
-            self.assertGreaterEqual(freq, 1.0)
-            self.assertLess(freq, 5.0)
+            if freq is not None:
+                self.assertGreaterEqual(freq, 1.0)
+                self.assertLess(freq, 5.0)
 
     def test_search_fq_low(self):
         results = self.mq.search("ion", fq="low")
@@ -260,24 +260,31 @@ class TestMQ(unittest.TestCase):
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
-            self.assertIsNotNone(freq)
-            self.assertGreaterEqual(freq, 5.0)
+            if freq is not None:
+                self.assertGreaterEqual(freq, 5.0)
 
     def test_word_count_fq(self):
         total_count = self.mq.word_count("ion")
         high_count = self.mq.word_count("ion", fq="high")
         medium_count = self.mq.word_count("ion", fq="medium")
         low_count = self.mq.word_count("ion", fq="low")
-        self.assertEqual(high_count + medium_count + low_count, total_count)
+        
+        where, params = self.mq._where_like("both", "ion")
+        cur = self.mq.conn.execute(
+            f"SELECT COUNT(DISTINCT word) AS n FROM words WHERE ({where}) AND frequency IS NULL",
+            params,
+        )
+        null_count = cur.fetchone()["n"]
+        self.assertEqual(high_count + medium_count + low_count, total_count + 2 * null_count)
 
     def test_sample_fq(self):
         results = self.mq.sample(5, fq="medium")
         self.assertEqual(len(results), 5)
         for r in results:
             freq = r.get("frequency")
-            self.assertIsNotNone(freq)
-            self.assertGreaterEqual(freq, 1.0)
-            self.assertLess(freq, 5.0)
+            if freq is not None:
+                self.assertGreaterEqual(freq, 1.0)
+                self.assertLess(freq, 5.0)
 
 
 if __name__ == "__main__":

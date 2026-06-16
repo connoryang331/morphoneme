@@ -234,9 +234,9 @@ class MQ:
         fq = fq.lower()
         col = f"{prefix}frequency"
         if fq == "high":
-            return f"{col} >= 5.0", []
+            return f"({col} >= 5.0 OR {col} IS NULL)", []
         elif fq == "medium":
-            return f"{col} >= 1.0 AND {col} < 5.0", []
+            return f"(({col} >= 1.0 AND {col} < 5.0) OR {col} IS NULL)", []
         elif fq == "low":
             return f"({col} < 1.0 OR {col} IS NULL)", []
         else:
