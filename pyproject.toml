@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "morphoneme"
-version = "0.1.3"
+version = "0.1.4"
 description = "Search English words by morphological and phonological columns"
 readme = "README.md"
 requires-python = ">=3.11"
