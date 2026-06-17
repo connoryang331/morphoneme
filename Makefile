@@ -9,15 +9,15 @@ install-dev:
 test: doctest unittest
 
 doctest:
-	python -m doctest morph_query/mq.py -v
+	python -m doctest morphoneme/mq.py -v
 
 unittest:
 	python -m unittest discover -s tests -v
 
 clean:
 	rm -rf build/ dist/ *.egg-info/ __pycache__/
-	rm -rf morph_query/__pycache__/
-	rm -rf morph_query/*.pyc
+	rm -rf morphoneme/__pycache__/
+	rm -rf morphoneme/*.pyc
 	find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null; true
 
 build:

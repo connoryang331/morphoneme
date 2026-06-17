@@ -6,7 +6,7 @@ __pycache__/
 *.pyc
 
 # Database
-morph_query/morph_query.db
+morphoneme/morphoneme.db
 
 # Virtual environments
 .venv/
@@ -21,3 +21,4 @@ env/
 .env
 *.db.zip
 data/frequency_cache.json*
+data/pronunciation_cache.json*

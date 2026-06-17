@@ -16,14 +16,15 @@ import signal
 TSV_PATH = Path(__file__).parent.parent / "data" / "morph_data.tsv"
 CACHE_PATH = Path(__file__).parent.parent / "data" / "frequency_cache.json"
 
-MAX_WORKERS = 40
+MAX_WORKERS = 20
 BATCH_SAVE_SIZE = 100
 
-def get_word_frequency(word):
+def get_word_frequency(word, session=None):
     url = f"https://api.datamuse.com/words?sp={word}&md=f&max=1"
+    caller = session if session is not None else requests
     for attempt in range(3):
         try:
-            r = requests.get(url, timeout=5)
+            r = caller.get(url, timeout=5)
             if r.status_code == 429:
                 # Rate limited, backoff
                 time.sleep(2 * (attempt + 1))
@@ -37,7 +38,7 @@ def get_word_frequency(word):
             return 0.0
         except Exception as e:
             time.sleep(1)
-    return 0.0
+    return None
 
 def load_cache():
     # Check main cache file first
@@ -86,8 +87,10 @@ def write_tsv(all_rows, cache):
             for row in all_rows:
                 word, uml_seg, city_seg, _ = row
                 freq = cache.get(word, "")
-                if freq != "":
+                if freq is not None and freq != "":
                     freq = str(freq)
+                else:
+                    freq = ""
                 writer.writerow([word, uml_seg, city_seg, freq])
             f.flush()
             os.fsync(f.fileno())
@@ -173,30 +176,40 @@ def main():
         completed = 0
         batch_size = 2000
         
-        for i in range(0, total_to_fetch, batch_size):
-            chunk = pending_words[i:i + batch_size]
-            
-            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-                futures = {executor.submit(get_word_frequency, w): w for w in chunk}
+        # Create a requests Session with a connection pool matching the thread count
+        session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(pool_connections=MAX_WORKERS, pool_maxsize=MAX_WORKERS)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        
+        try:
+            for i in range(0, total_to_fetch, batch_size):
+                chunk = pending_words[i:i + batch_size]
                 
-                for future in as_completed(futures):
-                    word = futures[future]
-                    try:
-                        freq = future.result()
-                        cache[word] = freq
-                    except Exception:
-                        cache[word] = 0.0
-                        
-                    completed += 1
-                    if completed % 100 == 0 or completed == total_to_fetch:
-                        print(f"Progress: {completed}/{total_to_fetch} ({(completed/total_to_fetch)*100:.2f}%)")
+                with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                    futures = {executor.submit(get_word_frequency, w, session): w for w in chunk}
+                    
+                    for future in as_completed(futures):
+                        word = futures[future]
+                        try:
+                            freq = future.result()
+                            if freq is not None:
+                                cache[word] = freq
+                        except Exception:
+                            pass
+                            
+                        completed += 1
+                        if completed % 100 == 0 or completed == total_to_fetch:
+                            print(f"Progress: {completed}/{total_to_fetch} ({(completed/total_to_fetch)*100:.2f}%) - {time.strftime('%Y-%m-%d %H:%M:%S')}")
+                
+                # Save chunk progress to cache only (fast JSON save, no TSV write)
+                save_cache(cache)
+        finally:
+            session.close()
             
-            # Save chunk progress
-            save_cache(cache)
-            print(f"Syncing frequencies to morph_data.tsv (completed: {completed})...")
-            write_tsv(all_rows, cache)
-            
-        print("Fetch complete and cache saved.")
+        print("Fetch complete. Saving final cache and syncing to morph_data.tsv...")
+        save_cache(cache)
+        write_tsv(all_rows, cache)
 
     print("morph_data.tsv is fully up-to-date!")
 

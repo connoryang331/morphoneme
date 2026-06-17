@@ -1,4 +1,4 @@
-# morph-query
+# morphoneme
 
 [English](README.md) | [简体中文](README_zh.md)
 
@@ -29,51 +29,51 @@ The morphological annotations in these datasets are provided by their respective
 ## Installation
 
 ```bash
-pip install morph-query
+pip install morphoneme
 ```
 
-Use the `mq` command after installation.
+Use the `mp` command after installation.
 
 ### Local Development
 
 ```bash
-git clone https://github.com/connoryang331/morph-query
-cd morph-query
+git clone https://github.com/connoryang331/morphoneme
+cd morphoneme
 pip install -e .
 ```
 
 If you are developing locally, you can build the database yourself from the raw TSV files:
 
 ```bash
-python scripts/build_morph_query_db.py
+python scripts/build_morphoneme_db.py
 ```
 
 This compiles both the primary `words` table and an indexed `word_morphemes` relation table for sub-millisecond morpheme queries.
 
 ### Database Auto-download & Storage
 
-To keep the installation package lightweight, the SQLite database (`morph_query.db`, ~50MB) is **not** bundled in the PyPI distribution.
+To keep the installation package lightweight, the SQLite database (`morphoneme.db`, ~50MB) is **not** bundled in the PyPI distribution.
 
 When you instantiate the `MQ` class or run the CLI for the first time:
 1. It looks for a bundled database in the package directory (used for local development).
-2. If not found, it checks `~/.morph_query/morph_query.db`.
-3. If still missing, it **automatically downloads** a pre-compiled database zip from GitHub Releases and extracts it to `~/.morph_query/`.
+2. If not found, it checks `~/.morphoneme/morphoneme.db`.
+3. If still missing, it **automatically downloads** a pre-compiled database zip from GitHub Releases and extracts it to `~/.morphoneme/`.
 
 No manual configuration is required.
 
 ## CLI Usage
 
 
-Invoke via the `mq` command:
+Invoke via the `mp` command:
 
 ```bash
-mq <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exclude=STR] [--exact] [--limit=N] [--fq=VAL]
+mp <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exclude=STR] [--exact] [--limit=N] [--fq=VAL]
 ```
 
 Or directly via the Python module:
 
 ```bash
-python -m morph_query <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exclude=STR] [--exact] [--limit=N] [--fq=VAL]
+python -m morphoneme <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--exclude=STR] [--exact] [--limit=N] [--fq=VAL]
 ```
 
 ### Search Commands
@@ -119,13 +119,13 @@ All search commands query **both umLabeller and CityLex datasets merged** by def
 | `--exclude=S1,S2`| Exclude results containing any of the comma-separated strings (case-insensitive) |
 | `--exact`        | Match exact morpheme instead of substring (for `search` cmd)  |
 | `--limit=N`      | Limit number of results returned                               |
-| `--fq=VAL`       | Filter results by frequency tier: `high` (>=5.0), `medium` (>=1.0 and <5.0), `low` (<1.0). **Note**: Words with missing frequency data (`NULL`) are **never** filtered out in any tier. |
+| `--fq=VAL`       | Filter results by comma-separated frequency tiers: `high` (>=5.0), `medium` (>=1.0), `low` (>=0.1), `rare` (>0.0), and `zero` (==0.0/NULL). Multi-selection is supported (e.g. `--fq=high,medium`). |
 
 ### Examples
 
 ```bash
 # Search for words containing "ion"
-$ mq search ion
+$ mp search ion
 Found 29553 results (source=both, seg=both):
   abbreviation      umlabeller=abbreviate @@ion     citylex={a--bbrevi--ate}>ion>
   abdication        umlabeller=abdicate @@ion       citylex={abdicate}>ion>
@@ -134,14 +134,14 @@ Found 29553 results (source=both, seg=both):
   ... and 29549 more
 
 # Search using wildcards (e.g. find words ending with "ough")
-$ mq search *ough
+$ mp search *ough
 Found 107 results (source=both, seg=both):
   rough             umlabeller=rough                citylex={rough}
   cough             umlabeller=cough                citylex={cough}
   ... and 105 more
 
 # Return words that contain the given prefix
-$ mq prefix un
+$ mp prefix un
 Found 33987 results (source=both, seg=both):
   unabandoned       umlabeller=un @@abandon @@ed    citylex=
   unabashed         umlabeller=un @@abash @@ed      citylex=
@@ -150,7 +150,7 @@ Found 33987 results (source=both, seg=both):
   ... and 33983 more
 
 # Return words that contain the given derivational suffix
-$ mq deri_suffix able
+$ mp deri_suffix able
 Found 7556 results (source=both, seg=both):
   abandonable       umlabeller=abandon @@able       citylex=
   acceptable        umlabeller=accept @@able        citylex=
@@ -159,7 +159,7 @@ Found 7556 results (source=both, seg=both):
   ... and 7552 more
 
 # Full morphological analysis (JSON)
-$ mq word_morph unbelievable --json
+$ mp word_morph unbelievable --json
 {
   "word": "unbelievable",
   "seg": "un-believe-able",
@@ -174,22 +174,22 @@ $ mq word_morph unbelievable --json
 }
 
 # Return lemma by stripping inflectional suffixes
-$ mq lemma running
+$ mp lemma running
 "run"
 
 # Random sampling
-$ mq sample 3
+$ mp sample 3
 Found 3 results (source=both, seg=both):
   flagrance         umlabeller=flagrant @@ce        citylex=
   gangway           umlabeller=gang @@way           citylex={gang}{way}
   excorticated      umlabeller=excorticate @@ed     citylex=
 
 # Query only one dataset with JSON output
-$ mq search ion citylex --json
+$ mp search ion citylex --json
 [{"word": "abacination", "citylex": ""}, {"word": "abalienation", "citylex": ""}, ...]
 
 # Exclude inflectional suffixes
-$ mq search ion --exclude-inf
+$ mp search ion --exclude-inf
 Found 19252 results (source=both, seg=both, exclude_inf):
   abbreviation      umlabeller=abbreviate @@ion     citylex={a--bbrevi--ate}>ion>
   abdication        umlabeller=abdicate @@ion       citylex={abdicate}>ion>
@@ -198,21 +198,21 @@ Found 19252 results (source=both, seg=both, exclude_inf):
   ... and 19248 more
 
 # Exclude results containing specific strings (e.g. search 'ough' but exclude 'ought')
-$ mq search ough --exclude=ought
+$ mp search ough --exclude=ought
 Found 362 results (source=both, seg=both, exclude=ought):
   rough             umlabeller=rough                citylex={rough}
   tough             umlabeller=tough                citylex={tough}
   ... and 360 more
 
 # Exact morpheme search (matching exact morpheme instead of substring)
-$ mq search ch --exact
+$ mp search ch --exact
 Found 8 results (source=both, seg=both, exact):
   chad              umlabeller=ch @@have @@ed       citylex={chad}
   cham              umlabeller=ch @@am              citylex=
   ... and 6 more
 
 # Filter results by frequency (e.g. search "ion" but only high-frequency words)
-$ mq search ion --fq=high --limit=3
+$ mp search ion --fq=high --limit=3
 Found 2782 results (source=both, seg=both, fq=high, limit=3):
   abolition                       umlabeller=abolish @@ion                        citylex={abolish}>ion>                    fq=5.33
   abortion                        umlabeller=abort @@ion                          citylex={abort}>ion>                      fq=9.94
@@ -222,33 +222,33 @@ Found 2782 results (source=both, seg=both, fq=high, limit=3):
 ## Python API
 
 ```python
-from morph_query import MQ
+from morphoneme import MQ
 
-mq = MQ()
+mp = MQ()
 
 # All search methods below are semantic aliases of search()
 # — they all do the same LIKE match on morpheme columns
-results = mq.search("ion")                      # generic search
-results = mq.words_with_prefix("un")            # semantic alias: "prefix"
-results = mq.words_with_suffix("ing")           # semantic alias: "suffix"
-results = mq.words_with_root("believe")         # semantic alias: "root"
-results = mq.words_with_deri("able")            # semantic alias: "deri_suffix"
-results = mq.words_with_inf("ed")               # semantic alias: "inf_suffix"
+results = mp.search("ion")                      # generic search
+results = mp.words_with_prefix("un")            # semantic alias: "prefix"
+results = mp.words_with_suffix("ing")           # semantic alias: "suffix"
+results = mp.words_with_root("believe")         # semantic alias: "root"
+results = mp.words_with_deri("able")            # semantic alias: "deri_suffix"
+results = mp.words_with_inf("ed")               # semantic alias: "inf_suffix"
 
 # Morphology analysis
-seg = mq.morph_seg("unbelievable")   # → "un-believe-able"
-count = mq.morph_count("running")    # → 2
-morph = mq.word_morph("cats")        # → full structure dict
-lemma = mq.lemma("running")          # → "run"
+seg = mp.morph_seg("unbelievable")   # → "un-believe-able"
+count = mp.morph_count("running")    # → 2
+morph = mp.word_morph("cats")        # → full structure dict
+lemma = mp.lemma("running")          # → "run"
 
 # Batch processing
-mq.batch_words("words.txt", mode="morph", fmt="csv")
+mp.batch_words("words.txt", mode="morph", fmt="csv")
 
 # Count
-n = mq.word_count("ion")
+n = mp.word_count("ion")
 
 # Random sample
-samples = mq.sample(10)
+samples = mp.sample(10)
 ```
 
 ### `word_morph()` Return Structure
@@ -273,16 +273,16 @@ samples = mq.sample(10)
 Process words from a file, output JSON or CSV:
 
 ```python
-mq.batch_words("words.txt", mode="seg", fmt="json")
-mq.batch_words("words.txt", mode="morph", fmt="csv")
-mq.batch_words("words.txt", mode="morph:ai", fmt="json")  # with AI validation
+mp.batch_words("words.txt", mode="seg", fmt="json")
+mp.batch_words("words.txt", mode="morph", fmt="csv")
+mp.batch_words("words.txt", mode="morph:ai", fmt="json")  # with AI validation
 ```
 
 Input file format: one word per line, lines starting with `#` are comments.
 
 ## Inflectional Suffixes
 
-The inflectional suffix list lives at `morph_query/inf_suffixes.txt`, one per line (supports `-` prefix). Default values:
+The inflectional suffix list lives at `morphoneme/inf_suffixes.txt`, one per line (supports `-` prefix). Default values:
 
 ```
 -s
@@ -297,47 +297,47 @@ Use `--exclude-inf` to filter out results with inflectional suffixes. If the fil
 
 # Why "semantic aliases"?
 
-In `morph-query`, CLI commands like `prefix`, `suffix`, and `root` (and their corresponding Python API methods) are **semantic aliases** of the generic `search` command. Under the hood, they all query the same SQLite database using simple SQL `LIKE` substring queries against the morphological annotation columns. 
+In `morphoneme`, CLI commands like `prefix`, `suffix`, and `root` (and their corresponding Python API methods) are **semantic aliases** of the generic `search` command. Under the hood, they all query the same SQLite database using simple SQL `LIKE` substring queries against the morphological annotation columns. 
 
-The aliases exist to provide a cleaner, more intuitive interface (e.g., `mq prefix un` is more readable than `mq search un`).
+The aliases exist to provide a cleaner, more intuitive interface (e.g., `mp prefix un` is more readable than `mp search un`).
 
 ### How it differs from Datamuse, Webster, and OneLook
 
-Querying `morph-query` differs fundamentally from doing a wildcard or substring search on online tools like the **Datamuse API**, **Merriam-Webster**, or **OneLook**:
+Querying `morphoneme` differs fundamentally from doing a wildcard or substring search on online tools like the **Datamuse API**, **Merriam-Webster**, or **OneLook**:
 
 #### 1. Morpheme-Level Matching vs. Surface-Spelling Matching
 * **Datamuse / Webster / OneLook:** These platforms perform search matches based purely on the **raw word spelling (orthography)**. If you search for words ending in `ion` (using wildcards like `*ion`), you will match any word that ends with those letters, regardless of whether it's a suffix.
   * *False Positives (Noise):* Searching for suffix `ion` will return words like *onion*, *cushion*, *lion*, and *million*, where `ion` is just part of the root spelling, not a suffix. Similarly, searching for prefix `un*` will return *uncle*, *under*, *union*, and *unit*, where `un` is not a prefix.
-* **morph-query:** It queries the **morpheme segmentation columns** (`umlabeller` and `citylex` data columns) in the database, *not* the raw word column.
+* **morphoneme:** It queries the **morpheme segmentation columns** (`umlabeller` and `citylex` data columns) in the database, *not* the raw word column.
   * *Precision:* A search for the prefix `un` only matches words where `un` is annotated as a prefix morpheme (e.g., `un @@abandon`), avoiding spelling false positives like *under* or *uncle*.
   * *Noise reduction (but not complete elimination):* While querying annotated morpheme columns significantly reduces noise, it cannot guarantee 100% matching accuracy because the underlying datasets (UniMorph & CityLex) are subject to annotator variations and minor inconsistencies. However, there is a qualitative difference in the noise:
-    * *Without morph-query (raw spelling search):* You get **extremely loud and annoying noise** (e.g., hundreds of completely unrelated words matching spelling patterns like `under` or `million`).
-    * *With morph-query (morpheme search):* The spelling-based noise is eliminated. Any remaining noise consists of minor annotation inconsistencies in the underlying research datasets—which, compared to spelling-based noise, are **like the gentle song of little birds outside the window**.
+    * *Without morphoneme (raw spelling search):* You get **extremely loud and annoying noise** (e.g., hundreds of completely unrelated words matching spelling patterns like `under` or `million`).
+    * *With morphoneme (morpheme search):* The spelling-based noise is eliminated. Any remaining noise consists of minor annotation inconsistencies in the underlying research datasets—which, compared to spelling-based noise, are **like the gentle song of little birds outside the window**.
 
 #### 2. Local Database vs. External Web APIs
 * **Datamuse / Webster / OneLook:** These are remote web services. To use them, you must make HTTP API requests or scrape pages. This introduces network latency, rate limits, dependency on internet connectivity, and potential API key requirements.
-* **morph-query:** Operates completely **locally** using a bundled SQLite database compiled from source datasets. It works offline, queries execute in sub-milliseconds, and it is highly suitable for large-scale batch queries.
+* **morphoneme:** Operates completely **locally** using a bundled SQLite database compiled from source datasets. It works offline, queries execute in sub-milliseconds, and it is highly suitable for large-scale batch queries.
 
 #### 3. Structured Morphological Output
 * **Datamuse / Webster / OneLook:** These tools return plain text definitions, word lists, or synonyms. They do not understand or return the structural components of the word.
-* **morph-query:** Provides a structured, parsed breakdown of the word's morphology. It distinguishes between roots, prefixes, derivational suffixes, and inflectional suffixes, allowing you to easily retrieve lemmas, count morphemes, or export full JSON structures.
+* **morphoneme:** Provides a structured, parsed breakdown of the word's morphology. It distinguishes between roots, prefixes, derivational suffixes, and inflectional suffixes, allowing you to easily retrieve lemmas, count morphemes, or export full JSON structures.
 
 ## Project Structure
 
 ```
-morph_query/
-├── morph_query/                 # Python package (published to PyPI)
+morphoneme/
+├── morphoneme/                 # Python package (published to PyPI)
 │   ├── __init__.py
 │   ├── __main__.py              # CLI entry point
 │   ├── mq.py                    # Core MQ class
-│   ├── morph_query.db           # SQLite database (bundled in package)
+│   ├── morphoneme.db           # SQLite database (bundled in package)
 │   └── inf_suffixes.txt         # Inflectional suffix list
 ├── data/
 │   ├── citylex-2026-06-15_morphology_segmention.tsv      # CityLex raw data (~68k rows)
 │   ├── eng.word.full.230613.r7_morphologic_division.tsv  # umLabeller raw data (~611k rows)
 │   └── morph_data.tsv           # Merged TSV (build source)
 ├── scripts/
-│   └── build_morph_query_db.py  # Build database from TSV
+│   └── build_morphoneme_db.py  # Build database from TSV
 ├── tests/
 │   ├── __init__.py
 │   └── test_mq.py
@@ -365,7 +365,7 @@ We plan to support the following features in future releases:
 
 ## Feedback & Requests
 
-If you have any feature requests, bug reports, or suggestions, feel free to open an issue on the [GitHub Issues](https://github.com/connoryang331/morph-query/issues) page.
+If you have any feature requests, bug reports, or suggestions, feel free to open an issue on the [GitHub Issues](https://github.com/connoryang331/morphoneme/issues) page.
 
 ## License
 
