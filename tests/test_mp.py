@@ -6,20 +6,20 @@ import tempfile
 import json
 from pathlib import Path
 
-from morphoneme import MQ
+from morphoneme import MP
 
 
-class TestMQ(unittest.TestCase):
-    """All tests share one MQ instance to avoid repeated DB opens."""
+class TestMP(unittest.TestCase):
+    """All tests share one MP instance to avoid repeated DB opens."""
 
     @classmethod
     def setUpClass(cls):
-        cls.mq = MQ()
+        cls.mp = MP()
 
     # ── core search ──────────────────────────────────────
 
     def test_search_both(self):
-        results = self.mq.search("run")
+        results = self.mp.search("run")
         self.assertIsInstance(results, list)
         for r in results:
             self.assertIn("word", r)
@@ -28,13 +28,13 @@ class TestMQ(unittest.TestCase):
 
     def test_search_umlabeller_source(self):
         """source controls which column to search, seg controls which columns to return (default both=all 3)."""
-        results = self.mq.search("run", source="umlabeller")
+        results = self.mp.search("run", source="umlabeller")
         self.assertIsInstance(results, list)
         for r in results:
             self.assertIn("word", r)
 
     def test_search_citylex_only(self):
-        results = self.mq.search("run", source="citylex", seg="citylex")
+        results = self.mp.search("run", source="citylex", seg="citylex")
         self.assertIsInstance(results, list)
         for r in results:
             self.assertIn("word", r)
@@ -42,11 +42,11 @@ class TestMQ(unittest.TestCase):
             self.assertNotIn("umlabeller", r)
 
     def test_search_limit(self):
-        results = self.mq.search("ion", limit=5)
+        results = self.mp.search("ion", limit=5)
         self.assertLessEqual(len(results), 5)
 
     def test_search_exact(self):
-        results = self.mq.search("ch", exact=True)
+        results = self.mp.search("ch", exact=True)
         self.assertIsInstance(results, list)
         words = [r["word"] for r in results]
         self.assertIn("chad", words)
@@ -55,14 +55,14 @@ class TestMQ(unittest.TestCase):
         self.assertNotIn("characteristic", words)
 
     def test_search_wildcard(self):
-        results = self.mq.search("*ough")
+        results = self.mp.search("*ough")
         self.assertIsInstance(results, list)
         words = [r["word"] for r in results]
         self.assertIn("rough", words)
         self.assertIn("cough", words)
         self.assertNotIn("ought", words)
 
-        results_start = self.mq.search("ough*")
+        results_start = self.mp.search("ough*")
         self.assertIsInstance(results_start, list)
         words_start = [r["word"] for r in results_start]
         self.assertIn("ought", words_start)
@@ -71,66 +71,66 @@ class TestMQ(unittest.TestCase):
     # ── semantic aliases ──────────────────────────────────────
 
     def test_words_with_prefix(self):
-        results = self.mq.words_with_prefix("un")
+        results = self.mp.words_with_prefix("un")
         self.assertIsInstance(results, list)
 
     def test_words_with_suffix(self):
-        results = self.mq.words_with_suffix("ing")
+        results = self.mp.words_with_suffix("ing")
         self.assertIsInstance(results, list)
 
     def test_words_with_root(self):
-        results = self.mq.words_with_root("believe")
+        results = self.mp.words_with_root("believe")
         self.assertIsInstance(results, list)
 
     # ── morpheme-level search ────────────────────────────────────
 
     def test_words_with_deri(self):
-        results = self.mq.words_with_deri("able")
+        results = self.mp.words_with_deri("able")
         self.assertIsInstance(results, list)
 
     def test_words_with_inf(self):
-        results = self.mq.words_with_inf("ed")
+        results = self.mp.words_with_inf("ed")
         self.assertIsInstance(results, list)
 
     # ── morpheme segmentation ──────────────────────────────────────
 
     def test_morph_seg_simple(self):
-        seg = self.mq.morph_seg("running")
+        seg = self.mp.morph_seg("running")
         if seg:
             self.assertIn("run", seg)
 
     _NOT_A_WORD = "qwertyuioppasdfghjklzxcvbnm"
 
     def test_morph_seg_not_found(self):
-        seg = self.mq.morph_seg(self._NOT_A_WORD)
+        seg = self.mp.morph_seg(self._NOT_A_WORD)
         self.assertIsNone(seg)
 
     # ── morpheme count ──────────────────────────────────────
 
     def test_morph_count(self):
-        count = self.mq.morph_count("unbelievable")
+        count = self.mp.morph_count("unbelievable")
         if count is not None:
             self.assertGreater(count, 1)
 
     def test_morph_count_not_found(self):
-        count = self.mq.morph_count(self._NOT_A_WORD)
+        count = self.mp.morph_count(self._NOT_A_WORD)
         self.assertIsNone(count)
 
     # ── Lemma ─────────────────────────────────────────
 
     def test_lemma(self):
-        lemma = self.mq.lemma("running")
+        lemma = self.mp.lemma("running")
         if lemma:
             self.assertIsInstance(lemma, str)
 
     def test_lemma_not_found(self):
-        lemma = self.mq.lemma(self._NOT_A_WORD)
+        lemma = self.mp.lemma(self._NOT_A_WORD)
         self.assertIsNone(lemma)
 
     # ── full morphology structure ──────────────────────────────────
 
     def test_word_morph(self):
-        r = self.mq.word_morph("cats")
+        r = self.mp.word_morph("cats")
         if r and r.get("seg"):
             self.assertIn("word", r)
             self.assertIn("seg", r)
@@ -139,21 +139,21 @@ class TestMQ(unittest.TestCase):
             self.assertIn("suffixes", r)
 
     def test_word_morph_not_found(self):
-        r = self.mq.word_morph(self._NOT_A_WORD)
+        r = self.mp.word_morph(self._NOT_A_WORD)
         self.assertIsNotNone(r)
         self.assertIsNone(r.get("seg"))
 
     # ── count ──────────────────────────────────────────
 
     def test_word_count(self):
-        n = self.mq.word_count("ion")
+        n = self.mp.word_count("ion")
         self.assertIsInstance(n, int)
         self.assertGreater(n, 0)
 
     # ── random sampling ──────────────────────────────────────
 
     def test_sample(self):
-        results = self.mq.sample(5)
+        results = self.mp.sample(5)
         self.assertEqual(len(results), 5)
 
     # ── batch processing ──────────────────────────────────────
@@ -162,7 +162,7 @@ class TestMQ(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             input_file = Path(tmp) / "words.txt"
             input_file.write_text("running\ncats\nunbelievable\n", encoding="utf-8")
-            output = self.mq.batch_words(str(input_file), mode="seg", fmt="json")
+            output = self.mp.batch_words(str(input_file), mode="seg", fmt="json")
             self.assertTrue(Path(output).exists())
             data = json.loads(Path(output).read_text(encoding="utf-8"))
             self.assertIsInstance(data, list)
@@ -172,62 +172,62 @@ class TestMQ(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             input_file = Path(tmp) / "words.txt"
             input_file.write_text("running\ncats\n", encoding="utf-8")
-            output = self.mq.batch_words(str(input_file), mode="seg", fmt="csv")
+            output = self.mp.batch_words(str(input_file), mode="seg", fmt="csv")
             self.assertTrue(Path(output).exists())
 
     def test_batch_words_morph(self):
         with tempfile.TemporaryDirectory() as tmp:
             input_file = Path(tmp) / "words.txt"
             input_file.write_text("running\n", encoding="utf-8")
-            output = self.mq.batch_words(str(input_file), mode="morph", fmt="json")
+            output = self.mp.batch_words(str(input_file), mode="morph", fmt="json")
             data = json.loads(Path(output).read_text(encoding="utf-8"))
             self.assertIn("root", data[0])
 
     # ── inflectional suffix filter ──────────────────────────────────
 
     def test_exclude_inf(self):
-        results_with = self.mq.search("ed", limit=20)
-        results_without = self.mq.search("ed", limit=20, exclude_inf=True)
+        results_with = self.mp.search("ed", limit=20)
+        results_without = self.mp.search("ed", limit=20, exclude_inf=True)
         # after filtering should be <= before filtering
         self.assertGreaterEqual(len(results_with), len(results_without))
 
     # ── _parse_citylex ────────────────────────────────
 
     def test_parse_citylex_single_root(self):
-        p, r, s = self.mq._parse_citylex("{norm--al}")
+        p, r, s = self.mp._parse_citylex("{norm--al}")
         self.assertEqual(r, ["norm"])
         self.assertEqual(s, ["al"])
 
     def test_parse_citylex_compound(self):
-        p, r, s = self.mq._parse_citylex("{abs--ent}{mind}>ed>>ly>")
+        p, r, s = self.mp._parse_citylex("{abs--ent}{mind}>ed>>ly>")
         self.assertEqual(r, ["abs", "mind"])
 
     # ── segmentation normalisation ────────────────────────────────────
 
     def test_norm_uml(self):
-        result = self.mq._norm_uml("un @@believ @@able")
+        result = self.mp._norm_uml("un @@believ @@able")
         self.assertEqual(result, "un-believ-able")
 
     def test_norm_city(self):
-        result = self.mq._norm_city("{un--believ--able}")
+        result = self.mp._norm_city("{un--believ--able}")
         self.assertEqual(result, "un-believ-able")
 
     # ── connection management ──────────────────────────────────────
 
     def test_context_manager(self):
-        with MQ() as mq:
-            n = mq.total
+        with MP() as mp:
+            n = mp.total
             self.assertIsInstance(n, int)
             self.assertGreater(n, 0)
 
     def test_total(self):
-        n = self.mq.total
+        n = self.mp.total
         self.assertIsInstance(n, int)
         self.assertGreater(n, 0)
 
     # ── frequency filter tests ──────────────────────────────────
     def test_search_fq_high(self):
-        results = self.mq.search("ion", fq="high")
+        results = self.mp.search("ion", fq="high")
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
@@ -235,7 +235,7 @@ class TestMQ(unittest.TestCase):
                 self.assertGreaterEqual(freq, 5.0)
 
     def test_search_fq_medium(self):
-        results = self.mq.search("ion", fq="medium")
+        results = self.mp.search("ion", fq="medium")
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
@@ -244,7 +244,7 @@ class TestMQ(unittest.TestCase):
                 self.assertLess(freq, 5.0)
 
     def test_search_fq_low(self):
-        results = self.mq.search("ion", fq="low")
+        results = self.mp.search("ion", fq="low")
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
@@ -253,7 +253,7 @@ class TestMQ(unittest.TestCase):
                 self.assertLess(freq, 1.0)
 
     def test_search_fq_rare(self):
-        results = self.mq.search("ion", fq="rare")
+        results = self.mp.search("ion", fq="rare")
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
@@ -262,7 +262,7 @@ class TestMQ(unittest.TestCase):
                 self.assertLess(freq, 0.1)
 
     def test_search_fq_zero(self):
-        results = self.mq.search("ion", fq="zero")
+        results = self.mp.search("ion", fq="zero")
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
@@ -271,10 +271,10 @@ class TestMQ(unittest.TestCase):
 
     def test_search_fq_invalid(self):
         with self.assertRaises(ValueError):
-            self.mq.search("ion", fq="invalid_value")
+            self.mp.search("ion", fq="invalid_value")
 
     def test_words_with_prefix_fq(self):
-        results = self.mq.words_with_prefix("ab", fq="high")
+        results = self.mp.words_with_prefix("ab", fq="high")
         self.assertGreater(len(results), 0)
         for r in results:
             freq = r.get("frequency")
@@ -282,17 +282,17 @@ class TestMQ(unittest.TestCase):
                 self.assertGreaterEqual(freq, 5.0)
 
     def test_word_count_fq(self):
-        total_count = self.mq.word_count("ion")
-        high_count = self.mq.word_count("ion", fq="high")
-        medium_count = self.mq.word_count("ion", fq="medium")
-        low_count = self.mq.word_count("ion", fq="low")
-        rare_count = self.mq.word_count("ion", fq="rare")
-        zero_count = self.mq.word_count("ion", fq="zero")
+        total_count = self.mp.word_count("ion")
+        high_count = self.mp.word_count("ion", fq="high")
+        medium_count = self.mp.word_count("ion", fq="medium")
+        low_count = self.mp.word_count("ion", fq="low")
+        rare_count = self.mp.word_count("ion", fq="rare")
+        zero_count = self.mp.word_count("ion", fq="zero")
         
         self.assertEqual(high_count + medium_count + low_count + rare_count + zero_count, total_count)
 
     def test_sample_fq(self):
-        results = self.mq.sample(5, fq="medium")
+        results = self.mp.sample(5, fq="medium")
         self.assertEqual(len(results), 5)
         for r in results:
             freq = r.get("frequency")
@@ -303,32 +303,32 @@ class TestMQ(unittest.TestCase):
     # ── phonetics tests ───────────────────────────────────
 
     def test_get_pronunciation(self):
-        pron = self.mq.get_pronunciation("ability")
+        pron = self.mp.get_pronunciation("ability")
         self.assertIsInstance(pron, str)
         self.assertGreater(len(pron), 0)
         # Should be space separated ARPAbet
         self.assertIn(" ", pron)
 
     def test_get_rhyme_suffix(self):
-        suffix = self.mq.get_rhyme_suffix("AH0 B IH1 L IH0 T IY0")
+        suffix = self.mp.get_rhyme_suffix("AH0 B IH1 L IH0 T IY0")
         self.assertEqual(suffix, "IH1 L IH0 T IY0")
         
         # Test word with no stress digits (fallback to vowel with 0)
-        suffix_no_stress = self.mq.get_rhyme_suffix("K AE T")
+        suffix_no_stress = self.mp.get_rhyme_suffix("K AE T")
         self.assertEqual(suffix_no_stress, "AE T")
 
     def test_get_syllable_count(self):
         # "ability" has 4 syllables (a-bil-i-ty)
-        count = self.mq.get_syllable_count("ability")
+        count = self.mp.get_syllable_count("ability")
         self.assertEqual(count, 4)
 
         # "test" has 1 syllable
-        count_test = self.mq.get_syllable_count("test")
+        count_test = self.mp.get_syllable_count("test")
         self.assertEqual(count_test, 1)
 
     def test_get_rhymes(self):
         # Test rhyme with a phonetic ending
-        results = self.mq.get_rhymes("IH1 L IH0 T IY0", limit=5)
+        results = self.mp.get_rhymes("IH1 L IH0 T IY0", limit=5)
         self.assertIsInstance(results, list)
         for r in results:
             self.assertIn("word", r)

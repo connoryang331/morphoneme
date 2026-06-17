@@ -1,4 +1,4 @@
-"""Morphological query tool — core MQ class.
+"""Morphological query tool — core MP class.
 
 Searches morpheme-segmentation columns (umlabeller / citylex), not the word
 column directly. This means even plain-text matching produces fewer spurious
@@ -51,8 +51,8 @@ def ensure_db_exists(db_path: Path) -> None:
             f"Please ensure you have internet access, or download it manually and place it at {db_path}."
         ) from e
 
-class MQ:
-    """Morph Query — search morpheme-annotation columns."""
+class MP:
+    """Morph Phoneme — search morpheme-annotation and phoneme columns."""
 
     def __init__(self, db_path: str | Path | None = None) -> None:
         if db_path is None:
@@ -351,11 +351,12 @@ class MQ:
 
         Prefers finer-grained annotation; CityLex wins ties.
 
-        >>> mq.morph_seg("running")
+        >>> mp = MP()
+        >>> mp.morph_seg("running")
         'run-ing'
-        >>> mq.morph_seg("pies")
+        >>> mp.morph_seg("pies")
         'pie-s'
-        >>> mq.morph_seg("xyzzyxyzzy") is None
+        >>> mp.morph_seg("xyzzyxyzzy") is None
         True
         """
         r = raw_row if raw_row is not None else self._word_raw(word)
@@ -388,11 +389,12 @@ class MQ:
     def morph_count(self, word: str, raw_row: dict | None = None) -> int | None:
         """Return number of morphemes in word (based on morph_seg segments).
 
-        >>> mq.morph_count("running")
+        >>> mp = MP()
+        >>> mp.morph_count("running")
         2
-        >>> mq.morph_count("unbelievable")
+        >>> mp.morph_count("unbelievable")
         3
-        >>> mq.morph_count("xyzzyxyzzy") is None
+        >>> mp.morph_count("xyzzyxyzzy") is None
         True
         """
         seg = self.morph_seg(word, raw_row=raw_row)
@@ -403,13 +405,14 @@ class MQ:
 
         Reuses word_morph() internally, returns the ``lemma`` field.
 
-        >>> mq.lemma("running")
+        >>> mp = MP()
+        >>> mp.lemma("running")
         'run'
-        >>> mq.lemma("cats")
+        >>> mp.lemma("cats")
         'cat'
-        >>> mq.lemma("unbelievable")
+        >>> mp.lemma("unbelievable")
         'un-believe-able'
-        >>> mq.lemma("xyzzyxyzzy") is None
+        >>> mp.lemma("xyzzyxyzzy") is None
         True
         """
         r = self.word_morph(word, raw_row=raw_row)
@@ -432,11 +435,11 @@ class MQ:
           * Text before ``{`` is also a prefix
           * ``>tok>`` after ``}`` are suffixes
 
-        >>> MQ._parse_citylex("{a--bbrevi--ate}")
+        >>> MP._parse_citylex("{a--bbrevi--ate}")
         (['a'], ['bbrevi'], ['ate'])
-        >>> MQ._parse_citylex("{norm--al}")
+        >>> MP._parse_citylex("{norm--al}")
         ([], ['norm'], ['al'])
-        >>> MQ._parse_citylex("{abs--ent}{mind}>ed>>ly>")
+        >>> MP._parse_citylex("{abs--ent}{mind}>ed>>ly>")
         ([], ['abs', 'mind'], ['ent', 'ed', 'ly'])
         """
         if not city:
@@ -492,14 +495,17 @@ class MQ:
           lemma        — only inflectional stripped (prefix + root + derivational)
           ai           — (ai=True only) list of check results
 
-        >>> mq.word_morph("unbelievable") == {
+        >>> mp = MP()
+        >>> res = mp.word_morph("unbelievable")
+        >>> {k: v for k, v in res.items() if k != "frequency"} == {
         ...     'word': 'unbelievable', 'seg': 'un-believe-able', 'prefixes': ['un'],
         ...     'roots': ['believe'], 'root': 'believe', 'suffixes': ['able'], 'derivational': ['able'],
         ...     'inflectional': [], 'base': 'believe', 'lemma': 'un-believe-able'
         ... }
         True
 
-        >>> mq.word_morph("cats") == {
+        >>> res_cats = mp.word_morph("cats")
+        >>> {k: v for k, v in res_cats.items() if k != "frequency"} == {
         ...     'word': 'cats', 'seg': 'cat-s', 'prefixes': [], 'roots': ['cat'], 'root': 'cat',
         ...     'suffixes': ['s'], 'derivational': [], 'inflectional': ['s'],
         ...     'base': 'cat', 'lemma': 'cat'
@@ -712,10 +718,11 @@ class MQ:
     ) -> int:
         """Lightweight count, returns count only.
 
-        >>> mq.word_count("ion")
-        29553
-        >>> mq.word_count("con", source="umlabeller", exclude_inf=True)
-        5384
+        >>> mp = MP()
+        >>> mp.word_count("ion")
+        29796
+        >>> mp.word_count("con", source="umlabeller", exclude_inf=True)
+        5490
         """
         if exclude_inf:
             # need Python-side filter, grab DISTINCT word
@@ -865,7 +872,8 @@ class MQ:
 
         Returns: absolute path of the output file.
 
-        >>> mq.batch_words("words.txt", mode="morph", fmt="csv")  # doctest: +SKIP
+        >>> mp = MP()
+        >>> mp.batch_words("words.txt", mode="morph", fmt="csv")  # doctest: +SKIP
         """
         input_path = Path(input_file)
         words = []

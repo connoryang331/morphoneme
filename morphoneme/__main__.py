@@ -3,7 +3,7 @@
 import json as _json
 import sys
 
-from .mq import MQ
+from .mp import MP
 
 
 def main():
@@ -40,13 +40,13 @@ def main():
 
     sys.argv = [a for a in sys.argv if a not in ("--json", "--exclude-inf", "--exact")]
 
-    mq = MQ()
+    mp = MP()
 
-    if exclude_inf and not mq.inflectional_suffixes:
+    if exclude_inf and not mp.inflectional_suffixes:
         print("inf_suffixes.txt not found - needed for --exclude-inf.")
         ans = input("Generate with defaults? [Y/n] ").strip().lower()
         if ans in ("", "y", "yes"):
-            p = mq.write_default_inf_file()
+            p = mp.write_default_inf_file()
             print(f"Created {p} - edit to customize suffixes.")
         else:
             print("Cannot exclude inflectional suffixes without a list. Aborting.")
@@ -93,47 +93,47 @@ def main():
     match cmd:
         # ── search / count ──
         case "search":
-            results = mq.search(arg, source=source, seg=seg,
+            results = mp.search(arg, source=source, seg=seg,
                                 exclude_inf=exclude_inf, limit=limit, exact=exact, fq=fq)
         case "prefix" | "suffix" | "root" | "deri_suffix" | "inf_suffix":
             fn = CMD_MAP.get(cmd, cmd)
-            results = getattr(mq, fn)(arg, source=source, seg=seg,
+            results = getattr(mp, fn)(arg, source=source, seg=seg,
                                       exclude_inf=exclude_inf, limit=limit, fq=fq)
         case "count":
-            n = mq.word_count(arg, source=source, exclude_inf=exclude_inf, fq=fq)
+            n = mp.word_count(arg, source=source, exclude_inf=exclude_inf, fq=fq)
             print(n)
             sys.exit(0)
         case "sample":
             n = int(arg)
-            results = mq.sample(n, source=source, seg=seg, exclude_inf=exclude_inf, fq=fq)
+            results = mp.sample(n, source=source, seg=seg, exclude_inf=exclude_inf, fq=fq)
 
         # ── morphological analysis ──
         case "word_morph":
-            r = mq.word_morph(arg)
+            r = mp.word_morph(arg)
             print(_json.dumps(r, ensure_ascii=False) if r else "Not found")
             sys.exit(0)
         case "word" | "word_seg" | "morph_seg":
-            r = mq.morph_seg(arg)
+            r = mp.morph_seg(arg)
             print(_json.dumps(r, ensure_ascii=False) if r else "Not found")
             sys.exit(0)
         case "morph_count":
-            n = mq.morph_count(arg)
+            n = mp.morph_count(arg)
             print(n)
             sys.exit(0)
         case "lemma":
-            r = mq.lemma(arg)
+            r = mp.lemma(arg)
             print(_json.dumps(r, ensure_ascii=False) if r else "Not found")
             sys.exit(0)
 
         # ── phonetics analysis ──
         case "pron" | "pronunciation":
-            r = mq.get_pronunciation(arg)
+            r = mp.get_pronunciation(arg)
             print(r if r else "Not found")
             sys.exit(0)
         case "rhyme":
-            results = mq.get_rhymes(arg, limit=limit, fq=fq)
+            results = mp.get_rhymes(arg, limit=limit, fq=fq)
         case "syllables":
-            n = mq.get_syllable_count(arg)
+            n = mp.get_syllable_count(arg)
             print(n)
             sys.exit(0)
 

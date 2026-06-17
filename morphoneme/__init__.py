@@ -1,5 +1,5 @@
 """morphoneme — Search English words by morphological and phonological columns."""
 
-from .mq import MQ
+from .mp import MP
 
-__all__ = ["MQ"]
+__all__ = ["MP"]

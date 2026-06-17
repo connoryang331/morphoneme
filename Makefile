@@ -9,7 +9,7 @@ install-dev:
 test: doctest unittest
 
 doctest:
-	python -m doctest morphoneme/mq.py -v
+	python -m doctest morphoneme/mp.py -v
 
 unittest:
 	python -m unittest discover -s tests -v

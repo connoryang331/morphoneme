@@ -54,7 +54,7 @@ python scripts/build_morphoneme_db.py
 
 为了保持安装包的轻量化，SQLite 数据库文件（`morphoneme.db`，约 50MB）**并未**打包进 PyPI 发布包中。
 
-当您首次实例化 `MQ` 类或在终端运行命令行工具时：
+当您首次实例化 `MP` 类或在终端运行命令行工具时：
 1. 程序会优先寻找包目录下是否已有打包好的数据库（用于本地开发或手动放置）。
 2. 如果未找到，程序会检查 `~/.morphoneme/morphoneme.db` 路径。
 3. 如果依然缺失，程序将**自动从 GitHub Releases 下载**预编译压缩的数据库 zip 包，并解压至 `~/.morphoneme/` 目录下。
@@ -232,9 +232,9 @@ Found 2782 results (source=both, seg=both, fq=high, limit=3):
 ## Python API
 
 ```python
-from morphoneme import MQ
+from morphoneme import MP
 
-mp = MQ()
+mp = MP()
 
 # 以下所有搜索方法都是基于词素索引关系表的快速精确查询
 results = mp.search("ion")                      # 模糊查询所有字段
@@ -338,7 +338,7 @@ morphoneme/
 ├── morphoneme/                 # Python 源码包 (发布至 PyPI)
 │   ├── __init__.py
 │   ├── __main__.py              # CLI 命令行入口
-│   ├── mq.py                    # 核心 MQ 类
+│   ├── mp.py                    # 核心 MP 类
 │   ├── morphoneme.db           # SQLite 本地数据库 (自动下载或本地生成)
 │   └── inf_suffixes.txt         # 屈折后缀配置列表
 ├── data/
@@ -349,7 +349,7 @@ morphoneme/
 │   └── build_morphoneme_db.py  # 从 TSV 构建 SQLite 数据库的脚本
 ├── tests/
 │   ├── __init__.py
-│   └── test_mq.py
+│   └── test_mp.py
 ├── pyproject.toml
 ├── Makefile
 ├── requirements.txt

@@ -54,7 +54,7 @@ This compiles both the primary `words` table and an indexed `word_morphemes` rel
 
 To keep the installation package lightweight, the SQLite database (`morphoneme.db`, ~50MB) is **not** bundled in the PyPI distribution.
 
-When you instantiate the `MQ` class or run the CLI for the first time:
+When you instantiate the `MP` class or run the CLI for the first time:
 1. It looks for a bundled database in the package directory (used for local development).
 2. If not found, it checks `~/.morphoneme/morphoneme.db`.
 3. If still missing, it **automatically downloads** a pre-compiled database zip from GitHub Releases and extracts it to `~/.morphoneme/`.
@@ -235,9 +235,9 @@ Found 2782 results (source=both, seg=both, fq=high, limit=3):
 ## Python API
 
 ```python
-from morphoneme import MQ
+from morphoneme import MP
 
-mp = MQ()
+mp = MP()
 
 # All search methods below are semantic aliases of search()
 # — they all do the same LIKE match on morpheme columns
@@ -342,7 +342,7 @@ morphoneme/
 ├── morphoneme/                 # Python package (published to PyPI)
 │   ├── __init__.py
 │   ├── __main__.py              # CLI entry point
-│   ├── mq.py                    # Core MQ class
+│   ├── mp.py                    # Core MP class
 │   ├── morphoneme.db           # SQLite database (bundled in package)
 │   └── inf_suffixes.txt         # Inflectional suffix list
 ├── data/
@@ -353,7 +353,7 @@ morphoneme/
 │   └── build_morphoneme_db.py  # Build database from TSV
 ├── tests/
 │   ├── __init__.py
-│   └── test_mq.py
+│   └── test_mp.py
 ├── pyproject.toml
 ├── Makefile
 ├── requirements.txt
