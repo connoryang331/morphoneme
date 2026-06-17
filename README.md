@@ -121,6 +121,19 @@ All search commands query **both umLabeller and CityLex datasets merged** by def
 | `--limit=N`      | Limit number of results returned                               |
 | `--fq=VAL`       | Filter results by comma-separated frequency tiers: `high` (>=5.0), `medium` (>=1.0), `low` (>=0.1), `rare` (>0.0), and `zero` (==0.0/NULL). Multi-selection is supported (e.g. `--fq=high,medium`). |
 
+### Word Frequency Tiers
+
+The dataset contains word frequency statistics from Datamuse (scaled frequencies). Words are grouped into five tiers (`--fq` parameter) as follows:
+
+| Category | Condition | Count | Percentage |
+| :--- | :--- | :--- | :--- |
+| **high** | `freq >= 5.0` | 21,767 | 3.56% |
+| **medium** | `1.0 <= freq < 5.0` | 32,139 | 5.26% |
+| **low** | `0.1 <= freq < 1.0` | 84,234 | 13.79% |
+| **rare** | `0.0 < freq < 0.1` | 267,661 | 43.80% |
+| **zero** | `freq == 0.0` or NULL | 205,249 | 33.59% |
+| **Total** | | **611,050** | **100.00%** |
+
 ### Examples
 
 ```bash

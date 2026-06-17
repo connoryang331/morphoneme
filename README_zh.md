@@ -118,6 +118,19 @@ python -m morphoneme <cmd> <arg> [source] [seg] [--json] [--exclude-inf] [--excl
 | `--limit=N` | 限制返回的结果数量 |
 | `--fq=VAL` | 按词频分类过滤（支持多选，逗号分隔）：`high` (>=5.0), `medium` (>=1.0), `low` (>=0.1), `rare` (>0.0), `zero` (==0.0 或 NULL)。支持多选（例如 `--fq=high,medium`）。 |
 
+### 词频分类统计 (Word Frequency Tiers)
+
+数据集包含了从 Datamuse 获取并经过缩放的词频数据。可以通过 `--fq` 参数对单词按以下五个词频等级进行过滤：
+
+| 等级 (Category) | 范围 (Condition) | 单词数量 (Count) | 百分比 (Percentage) |
+| :--- | :--- | :--- | :--- |
+| **high** | `freq >= 5.0` | 21,767 | 3.56% |
+| **medium** | `1.0 <= freq < 5.0` | 32,139 | 5.26% |
+| **low** | `0.1 <= freq < 1.0` | 84,234 | 13.79% |
+| **rare** | `0.0 < freq < 0.1` | 267,661 | 43.80% |
+| **zero** | `freq == 0.0` 或 NULL | 205,249 | 33.59% |
+| **总计 (Total)** | | **611,050** | **100.00%** |
+
 ### 使用示例
 
 ```bash
